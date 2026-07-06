@@ -4,14 +4,22 @@
 /**
  * Split a total amount into `n` equal shares (in dollars, rounded to cents).
  *
- * ⚠️ Known bug (issue #1): this rounds each share independently, so the shares
- * don't always add back up to the original total. e.g. splitAmount(10, 3)
- * returns [3.33, 3.33, 3.33] which sums to 9.99, not 10.00.
+ * Rounds down to whole cents for every share, then hands the leftover cents
+ * (at most n - 1 of them) one at a time to the first shares, so the shares
+ * always sum back to exactly `total`.
  */
 function splitAmount(total, n) {
   if (n <= 0) throw new Error("n must be a positive number");
-  const share = Math.round((total / n) * 100) / 100;
-  return Array(n).fill(share);
+  const totalCents = Math.round(total * 100);
+  const baseCents = Math.floor(totalCents / n);
+  let remainder = totalCents - baseCents * n;
+
+  const shares = Array(n).fill(baseCents);
+  for (let i = 0; i < n && remainder > 0; i++, remainder--) {
+    shares[i] += 1;
+  }
+
+  return shares.map((cents) => cents / 100);
 }
 
 /**
