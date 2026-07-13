@@ -1,6 +1,8 @@
 # 💸 Bill Splitter
 
-A tiny full-stack app for splitting shared expenses: add people, log who paid for what, and see who owes whom. Zero dependencies — just Node.
+A household bill-splitting app: create a household, add itemized expenses, and settle up with the fewest payments possible. Zero dependencies — just Node.
+
+See `docs/phase-1-planning.md` for the full spec this build follows.
 
 ## Run it
 ```bash
@@ -13,24 +15,28 @@ Then open **http://localhost:3000**.
 npm test
 ```
 
-> ⚠️ **One test fails on purpose.** `splitAmount shares always sum back to the original total` is the bug described in **issue #1** (`ISSUES.md`). It's the target of the training session — leave it failing until then.
-
 ## How it works
 | Part | File |
 |---|---|
-| Pure calculation logic (the tested core) | `core/split.js` |
+| Pure calculation logic (itemized splitting, proportional tax/tip, debt netting) | `core/split.js` |
 | HTTP server + JSON API | `server.js` |
 | Frontend (vanilla JS) | `public/` |
-| Saved data | `data/expenses.json` |
+| Saved data | `data/households.json` (gitignored — created on first run) |
 | Tests | `test/split.test.js` |
-| Shared Claude Code permissions | `.claude/settings.json` |
+| Design explorations for phase 1 | `docs/designs/` |
 
-The API: `GET /api/state`, `POST /api/people`, `POST /api/expenses`, `DELETE /api/expenses/:id`.
+## Model
+- A **household** has lightweight, name-only members (no passwords) and a join code.
+- Expenses are **itemized**: each line item is assigned to one person, a subset, or everyone (shared default). Tax/tip is distributed proportionally to each person's item subtotal.
+- Balances accumulate over a **monthly period**. Only the person who added an expense can edit/delete it, and only while the period is open.
+- **Settling up** nets balances down to the minimum number of payments; once every payment is marked paid, the period locks and a new one starts at $0.
+
+The API: `POST /api/households`, `POST /api/households/join`, `GET /api/households/:id`, `POST /api/households/:id/expenses`, `DELETE /api/households/:id/expenses/:expenseId`, `POST /api/households/:id/settle`, `POST /api/households/:id/settle/pay`.
 
 ## Requirements
 Node.js 18+ (uses the built-in test runner, so nothing to install).
 
 ## Where to go next
-- `ISSUES.md` — two ready-to-work issues (one bug, one feature).
+- `docs/phase-1-planning.md` — the full spec, including what's explicitly out of scope for phase 1.
+- `ISSUES.md` — legacy issues from the pre-households version of the app.
 - `TRAINEE.md` — the hands-on exercise.
-- Idea for later: a "settle-up plan" that turns balances into the fewest payments (who pays whom).

@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maple House — Settle Up</title>
+<style>
+  :root {
+    --bg-page: #F2ECE3;
+    --device-bg: #FFFBF6;
+    --card-bg: #FFFFFF;
+    --accent: #DD6B3A;
+    --accent-dark: #B84E24;
+    --accent-light: #FBE3D4;
+    --accent-lighter: #FDF0E5;
+    --ink: #2B2420;
+    --ink-soft: #7A6F64;
+    --ink-faint: #A99E92;
+    --border: #EFE4D8;
+    --positive: #2E9469;
+    --positive-light: #E3F3EA;
+    --negative: #CB4B4B;
+    --negative-light: #FBE7E5;
+    --avatar-alex: #4C7EA8;
+    --avatar-priya: #8B5FBF;
+    --avatar-sam: #2F9E8F;
+    --avatar-jordan: #D68A2B;
+    --radius-lg: 26px;
+    --radius-md: 18px;
+    --radius-sm: 12px;
+    --shadow-card: 0 2px 10px rgba(43, 36, 32, 0.06);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-page);
+    color: var(--ink);
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 32px 16px;
+  }
+
+  .device {
+    width: 100%;
+    max-width: 420px;
+    min-height: 844px;
+    background: var(--device-bg);
+    border-radius: 36px;
+    box-shadow: 0 24px 60px rgba(43, 36, 32, 0.18), 0 2px 8px rgba(43, 36, 32, 0.08);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(43,36,32,0.05);
+  }
+
+  .header {
+    padding: 18px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .back-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent-lighter);
+    color: var(--accent-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .header h1 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 800;
+  }
+
+  .header p {
+    margin: 1px 0 0;
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 20px 24px;
+  }
+
+  .content::-webkit-scrollbar { width: 0; }
+
+  .period-banner {
+    background: var(--accent-lighter);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 22px;
+  }
+
+  .period-banner .icon {
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  .period-banner p {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--accent-dark);
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  .period-banner strong { font-weight: 800; }
+
+  .progress-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .progress-row h3 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .progress-row span {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-soft);
+  }
+
+  .progress-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--border);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .progress-fill {
+    width: 33%;
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+  }
+
+  /* -------- Payment cards -------- */
+  .pay-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow-card);
+  }
+
+  .pay-card.mine {
+    border: 1.5px solid var(--accent);
+    box-shadow: 0 4px 16px rgba(221, 107, 58, 0.18);
+  }
+
+  .pay-flow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .pay-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .pay-avatar.alex { background: var(--avatar-alex); }
+  .pay-avatar.priya { background: var(--avatar-priya); }
+  .pay-avatar.sam { background: var(--avatar-sam); }
+  .pay-avatar.jordan { background: var(--avatar-jordan); }
+
+  .pay-arrow {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .pay-arrow::before {
+    content: "";
+    height: 2px;
+    width: 100%;
+    background: var(--border);
+    border-radius: 2px;
+  }
+
+  .pay-arrow .arrow-amount {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+    background: var(--card-bg);
+    padding: 0 4px;
+  }
+
+  .pay-arrow .arrow-head {
+    position: absolute;
+    right: -1px;
+    width: 8px;
+    height: 8px;
+    border-top: 2px solid var(--border);
+    border-right: 2px solid var(--border);
+    transform: rotate(45deg);
+  }
+
+  .pay-card.mine .arrow-amount { color: var(--accent-dark); }
+  .pay-card.mine .pay-arrow::before { background: var(--accent); }
+  .pay-card.mine .arrow-head { border-color: var(--accent); }
+
+  .pay-names {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-soft);
+  }
+
+  .pay-copy {
+    margin-top: 16px;
+    text-align: center;
+  }
+
+  .pay-copy .headline {
+    font-size: 15.5px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .pay-copy .headline strong { font-weight: 800; }
+
+  .mark-paid-btn {
+    margin-top: 14px;
+    width: 100%;
+    background: linear-gradient(145deg, var(--accent), var(--accent-dark));
+    color: #fff;
+    text-align: center;
+    padding: 14px;
+    border-radius: 999px;
+    font-size: 14.5px;
+    font-weight: 800;
+    box-shadow: 0 8px 18px rgba(221, 107, 58, 0.32);
+  }
+
+  .status-chip {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-faint);
+    background: var(--bg-page);
+    padding: 8px;
+    border-radius: 999px;
+  }
+
+  .status-chip.done {
+    color: var(--positive);
+    background: var(--positive-light);
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ink-faint);
+  }
+
+  .status-chip.done .dot { background: var(--positive); }
+
+  .lock-note {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: var(--card-bg);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin-top: 6px;
+  }
+
+  .lock-note .icon { font-size: 16px; }
+
+  .lock-note p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    font-weight: 500;
+  }
+
+  .lock-note strong { color: var(--ink); font-weight: 700; }
+</style>
+</head>
+<body>
+
+  <div class="device">
+
+    <div class="header">
+      <div class="back-btn">←</div>
+      <div>
+        <h1>Settle up</h1>
+        <p>July 2026 period</p>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="period-banner">
+        <div class="icon">🔒</div>
+        <p>Debts have been <strong>simplified to 3 payments</strong> instead of settling 6 separate pairs. Once everyone marks their payment as done, this period will lock.</p>
+      </div>
+
+      <div class="progress-row">
+        <h3>Settlement progress</h3>
+        <span>1 of 3 confirmed</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill"></div></div>
+
+      <!-- Card 1: current user's payment -->
+      <div class="pay-card mine">
+        <div class="pay-flow">
+          <div class="pay-avatar alex">A</div>
+          <div class="pay-arrow">
+            <span class="arrow-amount">$217.00</span>
+            <span class="arrow-head"></span>
+          </div>
+          <div class="pay-avatar priya">P</div>
+        </div>
+        <div class="pay-names"><span>Alex (you)</span><span>Priya</span></div>
+        <div class="pay-copy">
+          <div class="headline">You owe Priya <strong>$217.00</strong></div>
+        </div>
+        <div class="mark-paid-btn">Mark as paid</div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="pay-card">
+        <div class="pay-flow">
+          <div class="pay-avatar jordan">J</div>
+          <div class="pay-arrow">
+            <span class="arrow-amount">$457.00</span>
+            <span class="arrow-head"></span>
+          </div>
+          <div class="pay-avatar priya">P</div>
+        </div>
+        <div class="pay-names"><span>Jordan</span><span>Priya</span></div>
+        <div class="pay-copy">
+          <div class="headline">Jordan owes Priya <strong>$457.00</strong></div>
+        </div>
+        <div class="status-chip"><span class="dot"></span> Waiting for Jordan to confirm</div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="pay-card">
+        <div class="pay-flow">
+          <div class="pay-avatar jordan">J</div>
+          <div class="pay-arrow">
+            <span class="arrow-amount">$4.00</span>
+            <span class="arrow-head"></span>
+          </div>
+          <div class="pay-avatar sam">S</div>
+        </div>
+        <div class="pay-names"><span>Jordan</span><span>Sam</span></div>
+        <div class="pay-copy">
+          <div class="headline">Jordan owes Sam <strong>$4.00</strong></div>
+        </div>
+        <div class="status-chip done"><span class="dot"></span> Confirmed by both</div>
+      </div>
+
+      <div class="lock-note">
+        <div class="icon">📌</div>
+        <p><strong>Heads up:</strong> once all 3 payments are marked as done, July's period locks and a new one starts for August. Locked expenses can no longer be edited.</p>
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

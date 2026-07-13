@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Maple House — Add Expense</title>
+<style>
+  :root{
+    --paper: #F2ECDF;
+    --paper-card: #FFFDF9;
+    --receipt: #FFFCF5;
+    --ink: #2B2620;
+    --ink-soft: #5B5347;
+    --muted: #948A7B;
+    --border: #E4D9C6;
+    --border-dash: #C9BB9F;
+    --accent-green: #3F7D58;
+    --accent-green-bg: #E7F1EA;
+    --accent-red: #B5482F;
+    --shadow-color: rgba(60, 45, 20, 0.14);
+
+    --alex: #E07856;
+    --priya: #4C7A6B;
+    --sam: #D9A441;
+    --jordan: #6B5B95;
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-7: 48px;
+
+    --radius-s: 8px;
+    --radius-m: 14px;
+    --radius-l: 20px;
+
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 10% 0%, rgba(224,120,86,0.07), transparent 40%),
+      radial-gradient(circle at 90% 100%, rgba(76,122,107,0.08), transparent 45%);
+  }
+
+  .shell {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: var(--space-5) var(--space-4) var(--space-7);
+    min-height: 100vh;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-5);
+  }
+
+  .back-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--ink-soft);
+    flex-shrink: 0;
+  }
+
+  .topbar h1 {
+    font-size: 16.5px;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .save-btn {
+    background: var(--priya);
+    color: #fff;
+    font-weight: 700;
+    font-size: 13.5px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: none;
+    box-shadow: 0 3px 8px rgba(76,122,107,0.35);
+    cursor: pointer;
+  }
+
+  /* ---------- Meta card ---------- */
+  .meta-card {
+    background: var(--paper-card);
+    border-radius: var(--radius-m);
+    border: 1px solid var(--border);
+    padding: var(--space-4);
+    margin-bottom: var(--space-5);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    box-shadow: 0 2px 8px var(--shadow-color);
+  }
+
+  .meta-icon {
+    width: 44px; height: 44px;
+    border-radius: var(--radius-s);
+    background: var(--accent-green-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .meta-info { flex: 1; min-width: 0; }
+  .meta-title { font-weight: 700; font-size: 16px; }
+  .meta-sub { font-size: 12.5px; color: var(--muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; }
+
+  /* ---------- Receipt ---------- */
+  .receipt-wrap {
+    position: relative;
+    margin-bottom: var(--space-6);
+  }
+
+  .receipt {
+    background: var(--receipt);
+    border-radius: 3px;
+    padding: var(--space-6) var(--space-5) var(--space-5);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.6) inset,
+      0 18px 30px -14px var(--shadow-color),
+      0 2px 6px rgba(60,45,20,0.08);
+    position: relative;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgba(60,45,20,0.015) 0px,
+      rgba(60,45,20,0.015) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  }
+
+  /* zigzag top edge */
+  .receipt-wrap::before,
+  .receipt-wrap::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    height: 10px;
+    background: repeating-linear-gradient(
+      -45deg,
+      var(--paper) 0, var(--paper) 5px,
+      transparent 5px, transparent 10px
+    );
+  }
+  .receipt-wrap::before { top: -1px; }
+  .receipt-wrap::after { bottom: -1px; transform: scaleY(-1); }
+
+  .receipt-header {
+    text-align: center;
+    margin-bottom: var(--space-4);
+  }
+
+  .receipt-store {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .receipt-sub {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .receipt-rule {
+    border: none;
+    border-top: 1px dashed var(--border-dash);
+    margin: var(--space-4) 0;
+  }
+
+  .receipt-cols {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-2);
+  }
+
+  .line-item {
+    padding: var(--space-3) 0;
+    border-bottom: 1px dotted var(--border-dash);
+  }
+
+  .line-item:first-of-type { padding-top: 0; }
+
+  .line-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-3);
+  }
+
+  .line-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .line-leader {
+    flex: 1;
+    border-bottom: 1px dotted var(--border-dash);
+    margin: 0 var(--space-2);
+    transform: translateY(-3px);
+  }
+
+  .line-price {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14.5px;
+    white-space: nowrap;
+  }
+
+  .line-assign {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--space-2);
+  }
+
+  .assign-chips { display: flex; }
+  .assign-chips .chip { margin-left: -7px; border: 2px solid var(--receipt); }
+  .assign-chips .chip:first-child { margin-left: 0; }
+
+  .assign-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .chip {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 11px;
+    flex-shrink: 0;
+    box-shadow: inset 0 -2px 4px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.12);
+  }
+  .chip.alex { background: var(--alex); }
+  .chip.priya { background: var(--priya); }
+  .chip.sam { background: var(--sam); }
+  .chip.jordan { background: var(--jordan); }
+  .chip.ghost {
+    background: var(--paper);
+    color: var(--muted);
+    border: 1px dashed var(--border-dash);
+    box-shadow: none;
+    font-size: 12px;
+  }
+
+  /* Tax distribution block */
+  .tax-block {
+    margin-top: var(--space-4);
+    padding-top: var(--space-3);
+  }
+
+  .tax-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: var(--space-2);
+  }
+
+  .tax-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    padding: 5px 0;
+  }
+
+  .tax-person {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--ink-soft);
+  }
+
+  .tax-amount {
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+
+  .subtotal-block { margin-top: var(--space-4); }
+  .subtotal-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13.5px;
+    padding: 4px 0;
+    color: var(--ink-soft);
+  }
+  .subtotal-row .val { font-family: var(--font-mono); }
+
+  .receipt-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-top: var(--space-2);
+    padding-top: var(--space-3);
+    border-top: 2px solid var(--ink);
+  }
+
+  .receipt-total .label {
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .receipt-total .value {
+    font-family: var(--font-mono);
+    font-weight: 800;
+    font-size: 21px;
+  }
+
+  .receipt-footer-note {
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--muted);
+    margin-top: var(--space-4);
+    letter-spacing: 0.04em;
+  }
+
+  .receipt-barcode {
+    margin: var(--space-3) auto 0;
+    width: 140px;
+    height: 26px;
+    background: repeating-linear-gradient(
+      to right,
+      var(--ink) 0px, var(--ink) 2px,
+      transparent 2px, transparent 5px
+    );
+    opacity: 0.75;
+  }
+
+  /* legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    justify-content: center;
+    margin-top: var(--space-5);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="topbar">
+    <div class="back-btn">←</div>
+    <h1>Edit expense</h1>
+    <button class="save-btn">Save</button>
+  </div>
+
+  <div class="meta-card">
+    <div class="meta-icon">🛒</div>
+    <div class="meta-info">
+      <div class="meta-title">Costco run</div>
+      <div class="meta-sub">
+        <span class="chip tiny alex" style="width:18px;height:18px;font-size:9px;">A</span>
+        Paid by Alex · Jul 4, 2026
+      </div>
+    </div>
+  </div>
+
+  <div class="receipt-wrap">
+    <div class="receipt">
+      <div class="receipt-header">
+        <div class="receipt-store">Costco Wholesale</div>
+        <div class="receipt-sub">Maple House · Shared Expense</div>
+      </div>
+
+      <hr class="receipt-rule">
+
+      <div class="receipt-cols">
+        <span>Item</span>
+        <span>Assigned to</span>
+      </div>
+
+      <div class="line-item">
+        <div class="line-row">
+          <span class="line-name">Paper towels &amp; cleaning</span>
+          <span class="line-leader"></span>
+          <span class="line-price">$34.10</span>
+        </div>
+        <div class="line-assign">
+          <div class="assign-chips">
+            <div class="chip alex">A</div>
+            <div class="chip priya">P</div>
+            <div class="chip sam">S</div>
+            <div class="chip jordan">J</div>
+          </div>
+          <div class="assign-label">Everyone · shared</div>
+        </div>
+      </div>
+
+      <div class="line-item">
+        <div class="line-row">
+          <span class="line-name">Snacks</span>
+          <span class="line-leader"></span>
+          <span class="line-price">$28.90</span>
+        </div>
+        <div class="line-assign">
+          <div class="assign-chips">
+            <div class="chip alex">A</div>
+            <div class="chip sam">S</div>
+          </div>
+          <div class="assign-label">Alex + Sam</div>
+        </div>
+      </div>
+
+      <div class="line-item">
+        <div class="line-row">
+          <span class="line-name">Jordan's items</span>
+          <span class="line-leader"></span>
+          <span class="line-price">$61.20</span>
+        </div>
+        <div class="line-assign">
+          <div class="assign-chips">
+            <div class="chip jordan">J</div>
+          </div>
+          <div class="assign-label">Jordan only</div>
+        </div>
+      </div>
+
+      <div class="line-item" style="border-bottom: none;">
+        <div class="line-row">
+          <span class="line-name">Priya's items</span>
+          <span class="line-leader"></span>
+          <span class="line-price">$62.22</span>
+        </div>
+        <div class="line-assign">
+          <div class="assign-chips">
+            <div class="chip priya">P</div>
+          </div>
+          <div class="assign-label">Priya only</div>
+        </div>
+      </div>
+
+      <div class="subtotal-block">
+        <div class="subtotal-row"><span>Items subtotal</span><span class="val">$170.50</span></div>
+      </div>
+
+      <hr class="receipt-rule">
+
+      <div class="tax-block">
+        <div class="tax-title">Tax &amp; fees — distributed proportionally</div>
+
+        <div class="tax-row">
+          <div class="tax-person"><div class="chip alex" style="width:20px;height:20px;font-size:9px;">A</div>Alex</div>
+          <div class="tax-amount">$1.96</div>
+        </div>
+        <div class="tax-row">
+          <div class="tax-person"><div class="chip sam" style="width:20px;height:20px;font-size:9px;">S</div>Sam</div>
+          <div class="tax-amount">$1.96</div>
+        </div>
+        <div class="tax-row">
+          <div class="tax-person"><div class="chip jordan" style="width:20px;height:20px;font-size:9px;">J</div>Jordan</div>
+          <div class="tax-amount">$5.95</div>
+        </div>
+        <div class="tax-row">
+          <div class="tax-person"><div class="chip priya" style="width:20px;height:20px;font-size:9px;">P</div>Priya</div>
+          <div class="tax-amount">$6.05</div>
+        </div>
+      </div>
+
+      <div class="receipt-total">
+        <span class="label">Total</span>
+        <span class="value">$186.42</span>
+      </div>
+
+      <div class="receipt-footer-note">THANK YOU FOR SHOPPING · SPLIT BY MAPLE HOUSE</div>
+      <div class="receipt-barcode"></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="chip alex" style="width:18px;height:18px;font-size:9px;">A</div> Alex owes $22.96</div>
+    <div class="legend-item"><div class="chip sam" style="width:18px;height:18px;font-size:9px;">S</div> Sam owes $22.96</div>
+    <div class="legend-item"><div class="chip jordan" style="width:18px;height:18px;font-size:9px;">J</div> Jordan owes $69.70</div>
+    <div class="legend-item"><div class="chip priya" style="width:18px;height:18px;font-size:9px;">P</div> Priya owes $70.80</div>
+  </div>
+
+</div>
+</body>
+</html>
