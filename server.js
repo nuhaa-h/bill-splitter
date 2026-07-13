@@ -76,7 +76,8 @@ function householdView(household) {
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css" };
 
 function serveStatic(req, res) {
-  const urlPath = req.url === "/" ? "/index.html" : req.url;
+  const pathOnly = req.url.split("?")[0];
+  const urlPath = pathOnly === "/" ? "/index.html" : pathOnly;
   const filePath = path.join(PUBLIC_DIR, path.normalize(urlPath));
   if (!filePath.startsWith(PUBLIC_DIR)) return sendJSON(res, 403, { error: "forbidden" });
   fs.readFile(filePath, (err, content) => {

@@ -62,7 +62,17 @@ function currentPeriod() {
 /* Bootstrap + routing                                                    */
 /* ---------------------------------------------------------------------- */
 
+function inviteLinkFor(joinCode) {
+  return `${location.origin}${location.pathname}?join=${encodeURIComponent(joinCode)}`;
+}
+
 async function init() {
+  // An invite link (?join=CODE) always takes you to the join form
+  // prefilled with that code, even if this browser already belongs to
+  // another household — following someone's invite is a deliberate choice.
+  const inviteCode = new URLSearchParams(location.search).get("join");
+  if (inviteCode) return renderAuth({ prefillJoinCode: inviteCode });
+
   const householdId = localStorage.getItem(STORAGE_HOUSEHOLD_ID);
   if (!householdId || !personName) return renderAuth();
 
@@ -82,6 +92,7 @@ function route() {
   const view = location.hash.replace("#", "") || "dashboard";
   if (view === "add-expense") renderAddExpense();
   else if (view === "settle-up") renderSettleUp();
+  else if (view === "invite") renderInvite();
   else renderDashboard();
 }
 
@@ -93,14 +104,15 @@ async function refreshHousehold() {
 /* Auth: create / join a household                                        */
 /* ---------------------------------------------------------------------- */
 
-function renderAuth() {
+function renderAuth(opts) {
+  const prefillJoinCode = opts && opts.prefillJoinCode;
   app.innerHTML = `
     <div class="auth-shell">
       <div class="brand"><div class="brand-mark">&#127811;</div>Bill Splitter</div>
 
       <div class="auth-tabs">
-        <button id="tab-create" class="active">Create a household</button>
-        <button id="tab-join">Join a household</button>
+        <button id="tab-create" class="${prefillJoinCode ? "" : "active"}">Create a household</button>
+        <button id="tab-join" class="${prefillJoinCode ? "active" : ""}">Join a household</button>
       </div>
 
       <div id="auth-panel"></div>
@@ -109,7 +121,8 @@ function renderAuth() {
 
   document.getElementById("tab-create").onclick = () => showCreatePanel();
   document.getElementById("tab-join").onclick = () => showJoinPanel();
-  showCreatePanel();
+  if (prefillJoinCode) showJoinPanel(prefillJoinCode);
+  else showCreatePanel();
 }
 
 function setActiveTab(tabId) {
@@ -156,14 +169,14 @@ function showCreatePanel() {
   };
 }
 
-function showJoinPanel() {
+function showJoinPanel(prefillJoinCode) {
   setActiveTab("tab-join");
   const panel = document.getElementById("auth-panel");
   panel.innerHTML = `
     <div class="card">
       <div class="field">
         <label class="field-label">Join code</label>
-        <input type="text" id="join-code" placeholder="e.g. 3F9A2B" style="text-transform:uppercase" />
+        <input type="text" id="join-code" placeholder="e.g. 3F9A2B" style="text-transform:uppercase" value="${escapeHtml(prefillJoinCode || "")}" />
       </div>
       <div class="field">
         <label class="field-label">Your name</label>
@@ -187,7 +200,7 @@ function showJoinPanel() {
     try {
       household = await api("/api/households/join", { method: "POST", body: JSON.stringify({ joinCode, name }) });
       saveIdentity(household.id, name);
-      location.hash = "dashboard";
+      history.replaceState(null, "", `${location.pathname}#dashboard`);
       route();
     } catch (err) {
       errorEl.textContent = err.message;
@@ -198,18 +211,43 @@ function showJoinPanel() {
 
 function showJoinCodePanel() {
   const panel = document.getElementById("auth-panel");
+  const link = inviteLinkFor(household.joinCode);
   panel.innerHTML = `
     <div class="card">
-      <div class="card-desc" style="margin-bottom:10px;">Share this code with your roommates so they can join <b>${escapeHtml(household.name)}</b>.</div>
+      <div class="card-desc" style="margin-bottom:10px;">Share this code or link with your roommates so they can join <b>${escapeHtml(household.name)}</b>.</div>
       <div class="join-code-display">${escapeHtml(household.joinCode)}</div>
+      <div class="field">
+        <label class="field-label">Invite link</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="invite-link" readonly value="${escapeHtml(link)}" style="font-size:12.5px;" />
+          <button class="btn btn-secondary" id="copy-invite-link" style="flex-shrink:0;">Copy</button>
+        </div>
+      </div>
       <div class="actions" style="justify-content:stretch">
         <button class="btn btn-primary" id="continue-btn" style="width:100%; justify-content:center">Continue to dashboard</button>
       </div>
     </div>
   `;
+  wireCopyInviteLink();
   document.getElementById("continue-btn").onclick = () => {
     location.hash = "dashboard";
     route();
+  };
+}
+
+function wireCopyInviteLink() {
+  const btn = document.getElementById("copy-invite-link");
+  const input = document.getElementById("invite-link");
+  if (!btn || !input) return;
+  btn.onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(input.value);
+    } catch {
+      input.select();
+      document.execCommand("copy");
+    }
+    btn.textContent = "Copied!";
+    setTimeout(() => (btn.textContent = "Copy"), 1500);
   };
 }
 
@@ -229,7 +267,8 @@ function navHtml(active) {
         ${link("settle-up", "Settle Up")}
       </div>
       <div class="navright">
-        <div class="period-chip" title="Join code: ${escapeHtml(household.joinCode)}">${escapeHtml(period.label)}</div>
+        <div class="period-chip">${escapeHtml(period.label)}</div>
+        <button class="btn btn-secondary" id="invite-nav-btn" style="padding:7px 14px; font-size:13px;" data-view="invite">+ Invite</button>
         <select id="acting-as" class="period-chip" title="You're acting as">
           ${household.members.map((m) => `<option value="${escapeHtml(m)}" ${m === personName ? "selected" : ""}>${escapeHtml(m)}</option>`).join("")}
         </select>
@@ -245,6 +284,13 @@ function wireNav() {
       route();
     };
   });
+  const inviteBtn = document.getElementById("invite-nav-btn");
+  if (inviteBtn) {
+    inviteBtn.onclick = () => {
+      location.hash = "invite";
+      route();
+    };
+  }
   const actingAs = document.getElementById("acting-as");
   if (actingAs) {
     actingAs.onchange = () => {
@@ -252,6 +298,59 @@ function wireNav() {
       route();
     };
   }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Invite                                                                 */
+/* ---------------------------------------------------------------------- */
+
+async function renderInvite() {
+  await refreshHousehold();
+  const link = inviteLinkFor(household.joinCode);
+
+  app.innerHTML = `
+    ${navHtml("invite")}
+    <div class="shell">
+      <div class="page-head">
+        <div>
+          <div class="crumb">Dashboard &nbsp;/&nbsp; Invite</div>
+          <h1>Invite a roommate</h1>
+          <p>Anyone with this code or link can join ${escapeHtml(household.name)} by picking their name.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Join code</h2></div>
+        <div class="join-code-display">${escapeHtml(household.joinCode)}</div>
+
+        <div class="field" style="margin-top:18px;">
+          <label class="field-label">Invite link</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="invite-link" readonly value="${escapeHtml(link)}" style="font-size:12.5px;" />
+            <button class="btn btn-secondary" id="copy-invite-link" style="flex-shrink:0;">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Current members</h2><span>${household.members.length}</span></div>
+        <div class="chip-summary-list">
+          ${household.members
+            .map(
+              (m) => `
+            <div class="person-chip-stat">
+              <div class="person-avatar" style="background:${colorFor(m)}">${initials(m)}</div>
+              <div class="info"><div class="name">${escapeHtml(m)}</div></div>
+            </div>`
+            )
+            .join("")}
+        </div>
+      </div>
+    </div>
+  `;
+
+  wireNav();
+  wireCopyInviteLink();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -411,6 +510,18 @@ async function renderDashboard() {
         </div>
         <button class="btn btn-primary" id="go-settle">Settle Up &nbsp;&rarr;</button>
       </div>
+
+      ${
+        household.members.length < 2
+          ? `<div class="card lock-card" style="margin-bottom:18px;">
+              <div class="lock-icon">&#128101;</div>
+              <div>
+                <div class="stat-value">It's just you so far</div>
+                <div class="stat-sub">Invite a roommate to start splitting expenses &mdash; <a href="#invite" id="dashboard-invite-link" style="text-decoration:underline; font-weight:600;">get your invite link</a>.</div>
+              </div>
+            </div>`
+          : ""
+      }
 
       <div class="stat-grid">
         <div class="stat-card">
@@ -808,6 +919,10 @@ async function renderSettleUp() {
         ${
           period.expenses.length === 0
             ? `<div class="main-card"><div class="empty-note">No expenses logged yet this period &mdash; nothing to settle.</div></div>`
+            : household.members.length < 2
+            ? `<div class="main-card"><div class="empty-note">You're the only member of ${escapeHtml(household.name)}, so there's no one to split with yet. <a href="#invite" style="text-decoration:underline; font-weight:600;">Invite a roommate</a> to get started.</div></div>`
+            : payments.length === 0
+            ? `<div class="main-card"><div class="empty-note">Everyone's already even &mdash; nothing to settle this period.</div></div>`
             : `
         <div class="main-card">
           <div class="main-card-head">
@@ -817,7 +932,7 @@ async function renderSettleUp() {
           <div class="diagram-wrap">${buildOwesDiagram(payments)}</div>
           <div class="footer-actions">
             <div class="hint">Once you settle up, the period locks and these payments become official.</div>
-            <button class="btn btn-primary" id="settle-btn" ${payments.length === 0 ? "disabled" : ""}>Settle Up</button>
+            <button class="btn btn-primary" id="settle-btn">Settle Up</button>
           </div>
         </div>`
         }
