@@ -520,6 +520,14 @@ async function renderDashboard() {
                 <div class="stat-sub">Invite a roommate to start splitting expenses &mdash; <a href="#invite" id="dashboard-invite-link" style="text-decoration:underline; font-weight:600;">get your invite link</a>.</div>
               </div>
             </div>`
+          : household.settleUpReminder
+          ? `<div class="card lock-card" style="margin-bottom:18px; background:var(--negative-bg);">
+              <div class="lock-icon" style="background:var(--negative);">&#8987;</div>
+              <div>
+                <div class="stat-value" style="color:var(--negative);">${household.daysUntilPeriodEnd <= 0 ? "Today's the last day of" : `${household.daysUntilPeriodEnd} day${household.daysUntilPeriodEnd === 1 ? "" : "s"} left in`} ${escapeHtml(period.label)}</div>
+                <div class="stat-sub" style="color:var(--negative); opacity:0.85;">${escapeHtml(household.name)} usually settles up around month-end &mdash; <a href="#settle-up" style="text-decoration:underline; font-weight:600; color:inherit;">settle up now</a> before it closes.</div>
+              </div>
+            </div>`
           : ""
       }
 

@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const { computePeriodBalances, expenseTotal, netDebts } = require("./core/split");
+const { daysUntilPeriodEnd, shouldRemindToSettle } = require("./core/period");
 
 const DATA_FILE = path.join(__dirname, "data", "households.json");
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -70,7 +71,14 @@ function activePeriod(household) {
 function householdView(household) {
   const period = activePeriod(household);
   const balances = computePeriodBalances(household.members, period.expenses);
-  return { ...household, balances, currentPeriodId: period.id };
+  const now = new Date();
+  return {
+    ...household,
+    balances,
+    currentPeriodId: period.id,
+    daysUntilPeriodEnd: daysUntilPeriodEnd(now),
+    settleUpReminder: shouldRemindToSettle(period, now),
+  };
 }
 
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css" };
@@ -137,7 +145,12 @@ const server = http.createServer(async (req, res) => {
       const data = loadData();
       const household = findHousehold(data, parts[2]);
       if (!household) return sendJSON(res, 404, { error: "household not found" });
-      return sendJSON(res, 200, householdView(household));
+      const view = householdView(household);
+      if (view.settleUpReminder) {
+        const label = activePeriod(household).label;
+        console.log(`[reminder] ${household.name}: ${view.daysUntilPeriodEnd} day(s) left in ${label} — settle up soon`);
+      }
+      return sendJSON(res, 200, view);
     }
 
     // POST /api/households/:id/expenses  { description, payer, createdBy, items, taxTip }
