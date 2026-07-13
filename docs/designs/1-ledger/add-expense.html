@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Maple House — Add Expense</title>
+<style>
+  :root {
+    --bg: #f4f5f3;
+    --panel: #ffffff;
+    --panel-alt: #fafaf8;
+    --ink: #1c2320;
+    --ink-soft: #5a6360;
+    --ink-faint: #8b9390;
+    --line: #e2e5e1;
+    --line-strong: #c9cec7;
+    --navy: #2b3a4a;
+    --navy-deep: #1c2733;
+    --accent: #3d6b52;
+    --accent-bg: #e7f0ea;
+    --debt: #8c4a3a;
+    --debt-bg: #f6e9e4;
+    --gold: #a9822f;
+    --gold-bg: #f2ecdf;
+    --radius: 10px;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-7: 48px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    background: var(--navy-deep);
+    color: #eef1ee;
+    padding: var(--space-5) var(--space-4);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+  }
+
+  .brand-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    background: linear-gradient(145deg, #4a7a5c, #2f5a44);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 15px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .brand-name { font-weight: 600; font-size: 15px; color: #fff; }
+  .brand-sub { font-size: 11px; color: #9aa8ac; }
+
+  .nav {
+    list-style: none;
+    margin: 0 0 var(--space-6);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .nav li a {
+    display: block;
+    color: #c3cdc9;
+    text-decoration: none;
+    font-size: 13.5px;
+    padding: 9px 10px;
+    border-radius: 7px;
+  }
+
+  .nav li a.active { background: rgba(255,255,255,0.09); color: #fff; font-weight: 600; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: var(--space-5);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 11.5px;
+    color: #7d8b8a;
+  }
+
+  .main {
+    padding: var(--space-6) var(--space-7);
+    max-width: 980px;
+  }
+
+  .breadcrumb {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    margin-bottom: var(--space-2);
+  }
+
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 var(--space-5);
+    letter-spacing: -0.01em;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: var(--space-5);
+    align-items: start;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+
+  .panel-head {
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-title { font-size: 14.5px; font-weight: 700; margin: 0; }
+  .panel-head-sub { font-size: 11.5px; color: var(--ink-faint); }
+
+  .panel-body { padding: var(--space-5); }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 180px;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+
+  .field label {
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-faint);
+  }
+
+  .field input, .field select {
+    font-family: var(--font);
+    font-size: 14.5px;
+    padding: 10px 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    background: var(--panel-alt);
+    color: var(--ink);
+  }
+
+  .field input.amount-input {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .payer-select {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .payer-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px 7px 8px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 999px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    background: var(--panel-alt);
+  }
+
+  .payer-option.selected {
+    border-color: var(--navy);
+    background: var(--navy);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .payer-option .avatar {
+    width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: #fff;
+  }
+
+  .avatar.alex { background: #6b8fb0; }
+  .avatar.priya { background: #b0826b; }
+  .avatar.sam { background: #7a9c7e; }
+  .avatar.jordan { background: #9a7fb0; }
+
+  hr.divider { border: none; border-top: 1px solid var(--line); margin: var(--space-5) 0; }
+
+  .section-label-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: var(--space-3);
+  }
+
+  .section-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-faint);
+  }
+
+  .section-hint { font-size: 12px; color: var(--ink-faint); }
+
+  .item-row {
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    margin-bottom: var(--space-3);
+    overflow: hidden;
+  }
+
+  .item-row.pending { border-color: var(--gold); background: #fffdf7; }
+
+  .item-main {
+    display: grid;
+    grid-template-columns: 1fr 110px 34px;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 12px var(--space-4);
+  }
+
+  .item-name-input {
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    color: var(--ink);
+    padding: 4px 0;
+    width: 100%;
+  }
+
+  .item-amount-input {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 14px;
+    text-align: right;
+    border: none;
+    background: transparent;
+    color: var(--ink);
+    width: 100%;
+  }
+
+  .item-remove {
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    border: 1px solid var(--line-strong);
+    background: var(--panel-alt);
+    color: var(--ink-faint);
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+
+  .item-assign {
+    padding: 10px var(--space-4) 13px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--panel-alt);
+  }
+
+  .assign-label { font-size: 11px; color: var(--ink-faint); font-weight: 600; margin-right: 4px; }
+
+  .assign-chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    padding: 5px 10px 5px 6px;
+    border-radius: 999px;
+    border: 1.5px solid var(--line-strong);
+    color: var(--ink-soft);
+    background: #fff;
+  }
+
+  .assign-chip .avatar { width: 16px; height: 16px; font-size: 8px; }
+
+  .assign-chip.on {
+    border-color: var(--accent);
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .assign-chip.everyone-on {
+    border-color: var(--navy);
+    background: var(--navy);
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .assign-chip.unassigned-flag {
+    border-color: var(--gold);
+    background: var(--gold-bg);
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .add-item-btn {
+    width: 100%;
+    padding: 11px;
+    border: 1.5px dashed var(--line-strong);
+    border-radius: 9px;
+    background: transparent;
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* Sidebar summary panel */
+  .summary-panel { position: sticky; top: var(--space-6); }
+
+  .summary-panel .panel-body { padding: var(--space-5); }
+
+  .sum-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 13px;
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .sum-line .val {
+    font-family: var(--mono);
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sum-line.total {
+    border-bottom: none;
+    padding-top: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .sum-line.total .val { font-size: 16px; }
+
+  .check-box {
+    margin-top: var(--space-4);
+    padding: var(--space-4);
+    border-radius: 9px;
+    background: var(--gold-bg);
+    border: 1px solid #e0d3ae;
+  }
+
+  .check-box.balanced {
+    background: var(--accent-bg);
+    border-color: #bcdcc7;
+  }
+
+  .check-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .check-box.balanced .check-title { color: var(--accent); }
+
+  .check-bar-track {
+    height: 8px;
+    border-radius: 5px;
+    background: rgba(0,0,0,0.06);
+    overflow: hidden;
+    margin: 8px 0;
+  }
+
+  .check-bar-fill {
+    height: 100%;
+    background: var(--gold);
+    width: 66%;
+  }
+
+  .check-figures {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+
+  .check-note {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+
+  .per-person-breakdown {
+    margin-top: var(--space-5);
+  }
+
+  .breakdown-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-faint);
+    margin-bottom: var(--space-2);
+  }
+
+  .breakdown-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 0;
+    font-size: 12.5px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .breakdown-row:last-child { border-bottom: none; }
+
+  .breakdown-who { display: flex; align-items: center; gap: 7px; }
+  .breakdown-who .avatar { width: 18px; height: 18px; font-size: 9px; }
+
+  .breakdown-amt {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tax-note {
+    margin-top: var(--space-4);
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    background: var(--panel-alt);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    line-height: 1.45;
+  }
+
+  .tax-note strong { color: var(--ink); }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: var(--space-6);
+  }
+
+  .btn-primary {
+    background: var(--navy-deep);
+    color: #fff;
+    border: none;
+    padding: 12px 22px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    opacity: 0.55;
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1px solid var(--line-strong);
+    padding: 12px 22px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">MH</div>
+      <div>
+        <div class="brand-name">Maple House</div>
+        <div class="brand-sub">4 members</div>
+      </div>
+    </div>
+    <ul class="nav">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="add-expense.html" class="active">Add expense</a></li>
+      <li><a href="settle-up.html">Settle up</a></li>
+      <li><a href="#">History</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      Itemized expenses split tax &amp; fees proportionally to each person's subtotal.
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="breadcrumb"><a href="dashboard.html">Dashboard</a> / New expense</div>
+    <h1 class="page-title">Add an expense</h1>
+
+    <div class="layout">
+      <div>
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Details</h2>
+            <span class="panel-head-sub">July 2026 period</span>
+          </div>
+          <div class="panel-body">
+            <div class="field-row">
+              <div class="field">
+                <label for="desc">Description</label>
+                <input id="desc" type="text" value="Costco run" />
+              </div>
+              <div class="field">
+                <label for="amount">Total amount</label>
+                <input id="amount" class="amount-input" type="text" value="$186.42" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Paid by</label>
+              <div class="payer-select">
+                <div class="payer-option selected"><span class="avatar alex">A</span> Alex</div>
+                <div class="payer-option"><span class="avatar priya">P</span> Priya</div>
+                <div class="payer-option"><span class="avatar sam">S</span> Sam</div>
+                <div class="payer-option"><span class="avatar jordan">J</span> Jordan</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" style="margin-top: var(--space-5);">
+          <div class="panel-head">
+            <h2 class="panel-title">Itemize</h2>
+            <span class="panel-head-sub">Assign each line to one person, a subset, or everyone</span>
+          </div>
+          <div class="panel-body">
+
+            <div class="section-label-row">
+              <span class="section-label">Line items</span>
+              <span class="section-hint">4 items · $186.42 subtotal</span>
+            </div>
+
+            <div class="item-row">
+              <div class="item-main">
+                <input class="item-name-input" value="Paper towels &amp; cleaning supplies" readonly />
+                <input class="item-amount-input" value="$34.10" readonly />
+                <div class="item-remove">×</div>
+              </div>
+              <div class="item-assign">
+                <span class="assign-label">Assigned to</span>
+                <span class="assign-chip everyone-on">Everyone</span>
+              </div>
+            </div>
+
+            <div class="item-row">
+              <div class="item-main">
+                <input class="item-name-input" value="Snacks" readonly />
+                <input class="item-amount-input" value="$28.90" readonly />
+                <div class="item-remove">×</div>
+              </div>
+              <div class="item-assign">
+                <span class="assign-label">Assigned to</span>
+                <span class="assign-chip on"><span class="avatar alex">A</span>Alex</span>
+                <span class="assign-chip on"><span class="avatar sam">S</span>Sam</span>
+                <span class="assign-chip" style="opacity:.45"><span class="avatar priya">P</span>Priya</span>
+                <span class="assign-chip" style="opacity:.45"><span class="avatar jordan">J</span>Jordan</span>
+              </div>
+            </div>
+
+            <div class="item-row">
+              <div class="item-main">
+                <input class="item-name-input" value="Jordan's items (coffee, snacks)" readonly />
+                <input class="item-amount-input" value="$61.20" readonly />
+                <div class="item-remove">×</div>
+              </div>
+              <div class="item-assign">
+                <span class="assign-label">Assigned to</span>
+                <span class="assign-chip on"><span class="avatar jordan">J</span>Jordan only</span>
+              </div>
+            </div>
+
+            <div class="item-row pending">
+              <div class="item-main">
+                <input class="item-name-input" value="Priya's items (skincare, vitamins)" />
+                <input class="item-amount-input" value="$62.22" />
+                <div class="item-remove">×</div>
+              </div>
+              <div class="item-assign">
+                <span class="assign-label">Assigned to</span>
+                <span class="assign-chip unassigned-flag">⚠ Not yet assigned</span>
+                <span class="assign-chip" style="opacity:.45"><span class="avatar alex">A</span>Alex</span>
+                <span class="assign-chip" style="opacity:.45"><span class="avatar priya">P</span>Priya</span>
+                <span class="assign-chip" style="opacity:.45"><span class="avatar sam">S</span>Sam</span>
+                <span class="assign-chip" style="opacity:.45"><span class="avatar jordan">J</span>Jordan</span>
+              </div>
+            </div>
+
+            <button class="add-item-btn">+ Add line item</button>
+
+            <div class="tax-note">
+              <strong>Tax is distributed proportionally.</strong> Once every item is assigned, each person's share of tax is calculated from their share of the item subtotal — no separate tax line to split manually.
+            </div>
+          </div>
+        </section>
+
+        <div class="btn-row">
+          <button class="btn-primary">Save expense</button>
+          <button class="btn-secondary">Cancel</button>
+        </div>
+      </div>
+
+      <aside class="summary-panel">
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Running check</h2>
+          </div>
+          <div class="panel-body">
+            <div class="sum-line"><span>Total amount</span><span class="val">$186.42</span></div>
+            <div class="sum-line"><span>Assigned so far</span><span class="val">$124.20</span></div>
+            <div class="sum-line total"><span>Remaining to assign</span><span class="val" style="color:var(--gold)">$62.22</span></div>
+
+            <div class="check-box">
+              <div class="check-title">⚠ 1 item still unassigned</div>
+              <div class="check-bar-track"><div class="check-bar-fill"></div></div>
+              <div class="check-figures">
+                <span>$124.20 assigned</span>
+                <span>$186.42 total</span>
+              </div>
+              <div class="check-note">
+                "Priya's items" ($62.22) needs an owner before this expense can be saved.
+              </div>
+            </div>
+
+            <div class="per-person-breakdown">
+              <div class="breakdown-title">Preview — per-person share</div>
+              <div class="breakdown-row">
+                <span class="breakdown-who"><span class="avatar alex">A</span>Alex</span>
+                <span class="breakdown-amt">$22.98</span>
+              </div>
+              <div class="breakdown-row">
+                <span class="breakdown-who"><span class="avatar sam">S</span>Sam</span>
+                <span class="breakdown-amt">$22.98</span>
+              </div>
+              <div class="breakdown-row">
+                <span class="breakdown-who"><span class="avatar jordan">J</span>Jordan</span>
+                <span class="breakdown-amt">$69.73</span>
+              </div>
+              <div class="breakdown-row">
+                <span class="breakdown-who"><span class="avatar priya">P</span>Priya</span>
+                <span class="breakdown-amt" style="color:var(--ink-faint)">pending</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+</div>
+</body>
+</html>

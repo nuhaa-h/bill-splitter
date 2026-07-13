@@ -5,7 +5,8 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "check-reminder": "node scripts/check-settle-reminder.js"
   },
   "engines": {
     "node": ">=18"

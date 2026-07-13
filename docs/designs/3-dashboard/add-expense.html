@@ -1,0 +1,463 @@
+<title>Maple House — Add Expense</title>
+<style>
+  :root {
+    --bg: #F5F6FA;
+    --surface: #FFFFFF;
+    --border: #E7E9EE;
+    --border-soft: #EFF1F5;
+    --text: #14181F;
+    --text-secondary: #6B7280;
+    --text-tertiary: #9CA3AF;
+    --brand: #4F46E5;
+    --brand-dark: #4338CA;
+    --brand-soft: #EEF0FF;
+    --positive: #0D8A78;
+    --positive-bg: #E9F8F4;
+    --negative: #C2410C;
+    --negative-bg: #FDF1E8;
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --shadow-sm: 0 1px 2px rgba(20, 24, 31, 0.04);
+    --shadow-md: 0 2px 4px rgba(20, 24, 31, 0.04), 0 8px 20px rgba(20, 24, 31, 0.06);
+
+    --alex: #6366F1;
+    --priya: #0D8A78;
+    --sam: #D97706;
+    --jordan: #DB2777;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { text-decoration: none; color: inherit; }
+
+  .shell { max-width: 1180px; margin: 0 auto; padding: 0 32px 64px; }
+
+  .topnav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 32px; max-width: 1180px; margin: 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
+  .brand-mark {
+    width: 32px; height: 32px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--brand), #7C7AFF);
+    display: flex; align-items: center; justify-content: center; color: white; font-size: 16px;
+  }
+  .navlinks {
+    display: flex; align-items: center; gap: 4px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 999px; padding: 4px; box-shadow: var(--shadow-sm);
+  }
+  .navlinks a { padding: 8px 16px; border-radius: 999px; font-size: 13.5px; font-weight: 600; color: var(--text-secondary); }
+  .navlinks a.active { background: var(--text); color: white; }
+  .navright { display: flex; align-items: center; gap: 14px; }
+  .period-chip {
+    font-size: 13px; font-weight: 600; color: var(--text-secondary);
+    background: var(--surface); border: 1px solid var(--border); padding: 7px 14px; border-radius: 999px;
+  }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--alex); color: white;
+    display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;
+    border: 2px solid white; box-shadow: var(--shadow-sm);
+  }
+
+  .page-head { margin: 6px 0 26px; }
+  .page-head .crumb { font-size: 13px; color: var(--text-tertiary); font-weight: 600; margin-bottom: 6px; }
+  .page-head h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; }
+  .page-head p { margin: 0; color: var(--text-secondary); font-size: 14.5px; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 24px 26px;
+  }
+  .card + .card { margin-top: 18px; }
+  .card-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .card-head h2 { font-size: 15.5px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  .card-head span { font-size: 12.5px; color: var(--text-tertiary); }
+  .card-desc { font-size: 13px; color: var(--text-secondary); margin: 2px 0 20px; }
+
+  label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .field { margin-bottom: 18px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  input[type="text"], input[type="number"], select {
+    width: 100%;
+    padding: 11px 14px;
+    font-size: 14.5px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+  }
+  input.amount-input {
+    font-weight: 700;
+    font-size: 17px;
+  }
+  .amount-wrap { position: relative; }
+  .amount-wrap .prefix {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--text-tertiary); font-weight: 700; font-size: 17px;
+  }
+  .amount-wrap input { padding-left: 28px; }
+
+  .payer-select {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .payer-chip {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 14px 8px 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 999px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .payer-chip.selected {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+    color: var(--brand-dark);
+  }
+  .chip-avatar {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 10.5px; font-weight: 700;
+  }
+
+  hr.sep { border: none; border-top: 1px solid var(--border-soft); margin: 22px 0; }
+
+  /* Items */
+  .item-row {
+    display: grid;
+    grid-template-columns: 1.4fr 0.7fr 1.6fr;
+    gap: 14px;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .item-row:last-of-type { border-bottom: none; }
+  .item-desc-input input { font-weight: 600; }
+  .item-amt-wrap { position: relative; }
+  .item-amt-wrap .prefix { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); font-size: 13.5px; font-weight: 600; }
+  .item-amt-wrap input { padding-left: 24px; font-weight: 600; }
+
+  .assign-group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .assign-pill {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 10px 5px 5px;
+    border-radius: 999px;
+    border: 1.5px solid var(--border);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+  }
+  .assign-pill.on {
+    border-color: transparent;
+    color: white;
+  }
+  .assign-pill .dot { width: 16px; height: 16px; border-radius: 50%; display:flex; align-items:center; justify-content:center; color:white; font-size: 8px; font-weight: 800; }
+  .assign-everyone {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    background: var(--border-soft);
+    padding: 5px 10px;
+    border-radius: 999px;
+  }
+
+  .add-item-btn {
+    margin-top: 16px;
+    width: 100%;
+    padding: 12px;
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 13.5px;
+    cursor: pointer;
+  }
+
+  .tax-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-top: 18px;
+  }
+  .tax-row .label-inline { font-size: 13.5px; font-weight: 600; color: var(--text-secondary); }
+  .tax-row .note { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+  .tax-row input { width: 110px; text-align: right; }
+
+  .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    border-radius: var(--radius-sm); font-weight: 600; font-size: 14px;
+    padding: 11px 20px; border: 1px solid transparent; cursor: pointer;
+  }
+  .btn-primary { background: var(--brand); color: white; box-shadow: 0 1px 2px rgba(79,70,229,0.15), 0 6px 14px rgba(79,70,229,0.28); }
+  .btn-secondary { background: var(--surface); color: var(--text); border-color: var(--border); }
+
+  /* Summary sidebar */
+  .summary-sticky { position: sticky; top: 20px; }
+  .chip-summary-list { display: flex; flex-direction: column; gap: 10px; }
+  .person-chip-stat {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+  }
+  .person-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 13px; flex-shrink: 0;
+  }
+  .person-chip-stat .info { flex: 1; }
+  .person-chip-stat .name { font-size: 13.5px; font-weight: 700; }
+  .person-chip-stat .breakdown { font-size: 11.5px; color: var(--text-tertiary); margin-top: 1px; }
+  .person-chip-stat .total { font-weight: 700; font-size: 15px; }
+
+  .summary-total-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-top: 16px; margin-top: 12px; border-top: 1px solid var(--border-soft);
+  }
+  .summary-total-row .label { font-size: 13px; font-weight: 700; color: var(--text-secondary); }
+  .summary-total-row .value { font-size: 20px; font-weight: 700; }
+
+  .info-callout {
+    background: var(--brand-soft);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    font-size: 12.5px;
+    color: var(--brand-dark);
+    line-height: 1.5;
+    margin-top: 16px;
+  }
+</style>
+
+<div class="topnav">
+  <div class="brand">
+    <div class="brand-mark">&#127811;</div>
+    Maple House
+  </div>
+  <div class="navlinks">
+    <a href="dashboard.html">Dashboard</a>
+    <a class="active" href="add-expense.html">Add Expense</a>
+    <a href="settle-up.html">Settle Up</a>
+  </div>
+  <div class="navright">
+    <div class="period-chip">July 2026</div>
+    <div class="avatar">A</div>
+  </div>
+</div>
+
+<div class="shell">
+
+  <div class="page-head">
+    <div class="crumb">Dashboard &nbsp;/&nbsp; New expense</div>
+    <h1>Add an expense</h1>
+    <p>Break it into line items and assign each one to whoever it belongs to.</p>
+  </div>
+
+  <div class="layout">
+    <div>
+      <div class="card">
+        <div class="card-head"><h2>Expense details</h2></div>
+        <div class="card-desc">The basics &mdash; what it was, how much, and who paid.</div>
+
+        <div class="field">
+          <label>Description</label>
+          <input type="text" value="Costco run" />
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Total amount</label>
+            <div class="amount-wrap">
+              <span class="prefix">$</span>
+              <input class="amount-input" type="text" value="186.42" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Date</label>
+            <input type="text" value="Jul 4, 2026" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Paid by</label>
+          <div class="payer-select">
+            <div class="payer-chip selected">
+              <div class="chip-avatar" style="background:var(--alex)">A</div>
+              Alex
+            </div>
+            <div class="payer-chip">
+              <div class="chip-avatar" style="background:var(--priya)">P</div>
+              Priya
+            </div>
+            <div class="payer-chip">
+              <div class="chip-avatar" style="background:var(--sam)">S</div>
+              Sam
+            </div>
+            <div class="payer-chip">
+              <div class="chip-avatar" style="background:var(--jordan)">J</div>
+              Jordan
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Line items</h2>
+          <span>4 items</span>
+        </div>
+        <div class="card-desc">Assign each item to one person, a few people, or everyone (shared default).</div>
+
+        <div class="item-row">
+          <div class="item-desc-input">
+            <input type="text" value="Paper towels & cleaning supplies" />
+          </div>
+          <div class="item-amt-wrap">
+            <span class="prefix">$</span>
+            <input type="text" value="34.10" />
+          </div>
+          <div class="assign-group">
+            <span class="assign-everyone">&#128101; Everyone</span>
+          </div>
+        </div>
+
+        <div class="item-row">
+          <div class="item-desc-input">
+            <input type="text" value="Snacks" />
+          </div>
+          <div class="item-amt-wrap">
+            <span class="prefix">$</span>
+            <input type="text" value="28.90" />
+          </div>
+          <div class="assign-group">
+            <div class="assign-pill on" style="background:var(--alex)"><span class="dot" style="background:rgba(255,255,255,0.3)">A</span>Alex</div>
+            <div class="assign-pill on" style="background:var(--sam)"><span class="dot" style="background:rgba(255,255,255,0.3)">S</span>Sam</div>
+          </div>
+        </div>
+
+        <div class="item-row">
+          <div class="item-desc-input">
+            <input type="text" value="Jordan's items" />
+          </div>
+          <div class="item-amt-wrap">
+            <span class="prefix">$</span>
+            <input type="text" value="61.20" />
+          </div>
+          <div class="assign-group">
+            <div class="assign-pill on" style="background:var(--jordan)"><span class="dot" style="background:rgba(255,255,255,0.3)">J</span>Jordan</div>
+          </div>
+        </div>
+
+        <div class="item-row">
+          <div class="item-desc-input">
+            <input type="text" value="Priya's items" />
+          </div>
+          <div class="item-amt-wrap">
+            <span class="prefix">$</span>
+            <input type="text" value="62.22" />
+          </div>
+          <div class="assign-group">
+            <div class="assign-pill on" style="background:var(--priya)"><span class="dot" style="background:rgba(255,255,255,0.3)">P</span>Priya</div>
+          </div>
+        </div>
+
+        <button class="add-item-btn">+ Add line item</button>
+
+        <div class="tax-row">
+          <div>
+            <div class="label-inline">Tax already included in totals</div>
+            <div class="note">Folded proportionally into each person's item subtotal &mdash; no separate step needed.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary">Cancel</button>
+        <button class="btn btn-primary">Save expense</button>
+      </div>
+    </div>
+
+    <div class="summary-sticky">
+      <div class="card">
+        <div class="card-head"><h2>Per-person subtotal</h2></div>
+        <div class="card-desc">Updates live as you edit amounts and assignments.</div>
+
+        <div class="chip-summary-list">
+          <div class="person-chip-stat">
+            <div class="person-avatar" style="background:var(--priya)">P</div>
+            <div class="info">
+              <div class="name">Priya</div>
+              <div class="breakdown">$8.53 shared + $62.22 items</div>
+            </div>
+            <div class="total">$70.75</div>
+          </div>
+          <div class="person-chip-stat">
+            <div class="person-avatar" style="background:var(--jordan)">J</div>
+            <div class="info">
+              <div class="name">Jordan</div>
+              <div class="breakdown">$8.53 shared + $61.20 items</div>
+            </div>
+            <div class="total">$69.73</div>
+          </div>
+          <div class="person-chip-stat">
+            <div class="person-avatar" style="background:var(--alex)">A</div>
+            <div class="info">
+              <div class="name">Alex</div>
+              <div class="breakdown">$8.53 shared + $14.45 snacks</div>
+            </div>
+            <div class="total">$22.98</div>
+          </div>
+          <div class="person-chip-stat">
+            <div class="person-avatar" style="background:var(--sam)">S</div>
+            <div class="info">
+              <div class="name">Sam</div>
+              <div class="breakdown">$8.53 shared + $14.45 snacks</div>
+            </div>
+            <div class="total">$22.98</div>
+          </div>
+        </div>
+
+        <div class="summary-total-row">
+          <div class="label">Total</div>
+          <div class="value">$186.42</div>
+        </div>
+
+        <div class="info-callout">
+          Alex paid the full $186.42. Once saved, Priya, Sam and Jordan will each owe Alex their share shown above.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
