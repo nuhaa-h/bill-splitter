@@ -1,9 +1,11 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const { settleUp } = require("./core/split");
+const crypto = require("crypto");
+const { computePeriodBalances, expenseTotal, netDebts } = require("./core/split");
+const { daysUntilPeriodEnd, shouldRemindToSettle } = require("./core/period");
 
-const DATA_FILE = path.join(__dirname, "data", "expenses.json");
+const DATA_FILE = path.join(__dirname, "data", "households.json");
 const PUBLIC_DIR = path.join(__dirname, "public");
 const PORT = process.env.PORT || 3000;
 
@@ -11,7 +13,7 @@ function loadData() {
   try {
     return JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
   } catch {
-    return { people: [], expenses: [] };
+    return { households: {} };
   }
 }
 
@@ -39,10 +41,51 @@ function readBody(req) {
   });
 }
 
+function newId() {
+  return crypto.randomBytes(8).toString("hex");
+}
+
+function newJoinCode() {
+  return crypto.randomBytes(3).toString("hex").toUpperCase();
+}
+
+function currentPeriodLabel() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+// The active period is the most recent one, unless it's already settled —
+// in which case a fresh open period is created. A period stays "active"
+// (and keeps its expenses/settlement visible) through "open" and
+// "settling", so starting a settlement doesn't get mistaken for there
+// being no current period.
+function activePeriod(household) {
+  let period = household.periods[household.periods.length - 1];
+  if (!period || period.status === "settled") {
+    period = { id: newId(), label: currentPeriodLabel(), status: "open", expenses: [], settlement: null };
+    household.periods.push(period);
+  }
+  return period;
+}
+
+function householdView(household) {
+  const period = activePeriod(household);
+  const balances = computePeriodBalances(household.members, period.expenses);
+  const now = new Date();
+  return {
+    ...household,
+    balances,
+    currentPeriodId: period.id,
+    daysUntilPeriodEnd: daysUntilPeriodEnd(now),
+    settleUpReminder: shouldRemindToSettle(period, now),
+  };
+}
+
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css" };
 
 function serveStatic(req, res) {
-  const urlPath = req.url === "/" ? "/index.html" : req.url;
+  const pathOnly = req.url.split("?")[0];
+  const urlPath = pathOnly === "/" ? "/index.html" : pathOnly;
   const filePath = path.join(PUBLIC_DIR, path.normalize(urlPath));
   if (!filePath.startsWith(PUBLIC_DIR)) return sendJSON(res, 403, { error: "forbidden" });
   fs.readFile(filePath, (err, content) => {
@@ -52,47 +95,159 @@ function serveStatic(req, res) {
   });
 }
 
+function findHousehold(data, id) {
+  return data.households[id];
+}
+
 const server = http.createServer(async (req, res) => {
   const { method, url } = req;
+  const parts = url.split("?")[0].split("/").filter(Boolean);
+
+  if (url === "/favicon.ico") {
+    res.writeHead(204);
+    return res.end();
+  }
+
   try {
-    if (url === "/api/state" && method === "GET") {
-      const data = loadData();
-      return sendJSON(res, 200, { ...data, balances: settleUp(data.people, data.expenses) });
-    }
-
-    if (url === "/api/people" && method === "POST") {
-      const { name } = await readBody(req);
-      if (!name || !name.trim()) return sendJSON(res, 400, { error: "name is required" });
-      const data = loadData();
-      if (!data.people.includes(name.trim())) data.people.push(name.trim());
-      saveData(data);
-      return sendJSON(res, 201, data);
-    }
-
-    if (url === "/api/expenses" && method === "POST") {
-      const { description, payer, amount, participants } = await readBody(req);
-      if (!payer || !amount || !participants || participants.length === 0) {
-        return sendJSON(res, 400, { error: "payer, amount and participants are required" });
+    // POST /api/households  { name, creatorName }
+    if (url === "/api/households" && method === "POST") {
+      const { name, creatorName } = await readBody(req);
+      if (!name || !name.trim() || !creatorName || !creatorName.trim()) {
+        return sendJSON(res, 400, { error: "name and creatorName are required" });
       }
       const data = loadData();
-      const id = data.expenses.length ? Math.max(...data.expenses.map((e) => e.id)) + 1 : 1;
-      data.expenses.push({
-        id,
-        description: description || "",
-        payer,
-        amount: Number(amount),
-        participants,
-      });
+      const household = {
+        id: newId(),
+        name: name.trim(),
+        joinCode: newJoinCode(),
+        members: [creatorName.trim()],
+        periods: [],
+      };
+      activePeriod(household);
+      data.households[household.id] = household;
       saveData(data);
-      return sendJSON(res, 201, data);
+      return sendJSON(res, 201, householdView(household));
     }
 
-    if (url.startsWith("/api/expenses/") && method === "DELETE") {
-      const id = Number(url.split("/").pop());
+    // POST /api/households/join  { joinCode, name }
+    if (url === "/api/households/join" && method === "POST") {
+      const { joinCode, name } = await readBody(req);
+      if (!joinCode || !name || !name.trim()) {
+        return sendJSON(res, 400, { error: "joinCode and name are required" });
+      }
       const data = loadData();
-      data.expenses = data.expenses.filter((e) => e.id !== id);
+      const household = Object.values(data.households).find(
+        (h) => h.joinCode === joinCode.trim().toUpperCase()
+      );
+      if (!household) return sendJSON(res, 404, { error: "no household with that join code" });
+      if (!household.members.includes(name.trim())) household.members.push(name.trim());
       saveData(data);
-      return sendJSON(res, 200, data);
+      return sendJSON(res, 200, householdView(household));
+    }
+
+    // GET /api/households/:id
+    if (parts[0] === "api" && parts[1] === "households" && parts.length === 3 && method === "GET") {
+      const data = loadData();
+      const household = findHousehold(data, parts[2]);
+      if (!household) return sendJSON(res, 404, { error: "household not found" });
+      const view = householdView(household);
+      if (view.settleUpReminder) {
+        const label = activePeriod(household).label;
+        console.log(`[reminder] ${household.name}: ${view.daysUntilPeriodEnd} day(s) left in ${label} — settle up soon`);
+      }
+      return sendJSON(res, 200, view);
+    }
+
+    // POST /api/households/:id/expenses  { description, payer, createdBy, items, taxTip }
+    if (parts[0] === "api" && parts[1] === "households" && parts[3] === "expenses" && parts.length === 4 && method === "POST") {
+      const data = loadData();
+      const household = findHousehold(data, parts[2]);
+      if (!household) return sendJSON(res, 404, { error: "household not found" });
+      const { description, payer, createdBy, items, taxTip } = await readBody(req);
+      if (!payer || !createdBy || !Array.isArray(items) || items.length === 0) {
+        return sendJSON(res, 400, { error: "payer, createdBy and at least one item are required" });
+      }
+      for (const item of items) {
+        if (!item.label || typeof item.amount !== "number" || item.amount <= 0) {
+          return sendJSON(res, 400, { error: "each item needs a label and a positive amount" });
+        }
+        if (item.assignedTo !== "everyone" && (!Array.isArray(item.assignedTo) || item.assignedTo.length === 0)) {
+          return sendJSON(res, 400, { error: "each item must be assigned to 'everyone' or a non-empty list of people" });
+        }
+      }
+      const period = activePeriod(household);
+      if (period.status !== "open") {
+        return sendJSON(res, 400, { error: "this period is being settled — wait for it to close before adding new expenses" });
+      }
+      const expense = {
+        id: newId(),
+        description: description || "",
+        payer,
+        createdBy,
+        items,
+        taxTip: Number(taxTip) || 0,
+      };
+      period.expenses.push(expense);
+      saveData(data);
+      return sendJSON(res, 201, householdView(household));
+    }
+
+    // DELETE /api/households/:id/expenses/:expenseId?actingAs=Name
+    if (parts[0] === "api" && parts[1] === "households" && parts[3] === "expenses" && parts.length === 5 && method === "DELETE") {
+      const data = loadData();
+      const household = findHousehold(data, parts[2]);
+      if (!household) return sendJSON(res, 404, { error: "household not found" });
+      const actingAs = new URL(url, "http://localhost").searchParams.get("actingAs");
+      const period = activePeriod(household);
+      if (period.status !== "open") {
+        return sendJSON(res, 400, { error: "this period is being settled and its expenses are locked" });
+      }
+      const expense = period.expenses.find((e) => e.id === parts[4]);
+      if (!expense) return sendJSON(res, 404, { error: "expense not found in the open period" });
+      if (expense.createdBy !== actingAs) {
+        return sendJSON(res, 403, { error: "only the person who added an expense can delete it" });
+      }
+      period.expenses = period.expenses.filter((e) => e.id !== expense.id);
+      saveData(data);
+      return sendJSON(res, 200, householdView(household));
+    }
+
+    // POST /api/households/:id/settle
+    if (parts[0] === "api" && parts[1] === "households" && parts[3] === "settle" && parts.length === 4 && method === "POST") {
+      const data = loadData();
+      const household = findHousehold(data, parts[2]);
+      if (!household) return sendJSON(res, 404, { error: "household not found" });
+      const period = activePeriod(household);
+      if (period.settlement) return sendJSON(res, 200, householdView(household));
+      if (period.expenses.length === 0) {
+        return sendJSON(res, 400, { error: "nothing to settle yet — add an expense first" });
+      }
+      const balances = computePeriodBalances(household.members, period.expenses);
+      const payments = netDebts(balances).map((p) => ({ ...p, paid: false }));
+      period.settlement = { payments, settledAt: null };
+      period.status = "settling";
+      saveData(data);
+      return sendJSON(res, 200, householdView(household));
+    }
+
+    // POST /api/households/:id/settle/pay  { paymentIndex }
+    if (parts[0] === "api" && parts[1] === "households" && parts[3] === "settle" && parts[4] === "pay" && parts.length === 5 && method === "POST") {
+      const data = loadData();
+      const household = findHousehold(data, parts[2]);
+      if (!household) return sendJSON(res, 404, { error: "household not found" });
+      const period = household.periods.find((p) => p.status === "settling");
+      if (!period || !period.settlement) return sendJSON(res, 400, { error: "no settlement in progress" });
+      const { paymentIndex } = await readBody(req);
+      const payment = period.settlement.payments[paymentIndex];
+      if (!payment) return sendJSON(res, 404, { error: "payment not found" });
+      payment.paid = true;
+      if (period.settlement.payments.every((p) => p.paid)) {
+        period.status = "settled";
+        period.settlement.settledAt = new Date().toISOString();
+        activePeriod(household);
+      }
+      saveData(data);
+      return sendJSON(res, 200, householdView(household));
     }
 
     if (url.startsWith("/api/")) return sendJSON(res, 404, { error: "unknown endpoint" });

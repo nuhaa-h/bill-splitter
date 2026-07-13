@@ -1,0 +1,350 @@
+<title>Maple House — Settle Up</title>
+<style>
+  :root {
+    --bg: #F5F6FA;
+    --surface: #FFFFFF;
+    --border: #E7E9EE;
+    --border-soft: #EFF1F5;
+    --text: #14181F;
+    --text-secondary: #6B7280;
+    --text-tertiary: #9CA3AF;
+    --brand: #4F46E5;
+    --brand-dark: #4338CA;
+    --brand-soft: #EEF0FF;
+    --positive: #0D8A78;
+    --positive-bg: #E9F8F4;
+    --positive-border: #BFE9DE;
+    --negative: #C2410C;
+    --negative-bg: #FDF1E8;
+    --negative-border: #F4D2B8;
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --shadow-sm: 0 1px 2px rgba(20, 24, 31, 0.04);
+    --shadow-md: 0 2px 4px rgba(20, 24, 31, 0.04), 0 8px 20px rgba(20, 24, 31, 0.06);
+
+    --alex: #6366F1;
+    --priya: #0D8A78;
+    --sam: #D97706;
+    --jordan: #DB2777;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { text-decoration: none; color: inherit; }
+  .shell { max-width: 1180px; margin: 0 auto; padding: 0 32px 64px; }
+
+  .topnav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 32px; max-width: 1180px; margin: 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
+  .brand-mark {
+    width: 32px; height: 32px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--brand), #7C7AFF);
+    display: flex; align-items: center; justify-content: center; color: white; font-size: 16px;
+  }
+  .navlinks {
+    display: flex; align-items: center; gap: 4px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 999px; padding: 4px; box-shadow: var(--shadow-sm);
+  }
+  .navlinks a { padding: 8px 16px; border-radius: 999px; font-size: 13.5px; font-weight: 600; color: var(--text-secondary); }
+  .navlinks a.active { background: var(--text); color: white; }
+  .navright { display: flex; align-items: center; gap: 14px; }
+  .period-chip {
+    font-size: 13px; font-weight: 600; color: var(--text-secondary);
+    background: var(--surface); border: 1px solid var(--border); padding: 7px 14px; border-radius: 999px;
+  }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--alex); color: white;
+    display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;
+    border: 2px solid white; box-shadow: var(--shadow-sm);
+  }
+
+  .page-head { margin: 6px 0 26px; }
+  .page-head .crumb { font-size: 13px; color: var(--text-tertiary); font-weight: 600; margin-bottom: 6px; }
+  .page-head h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; }
+  .page-head p { margin: 0; color: var(--text-secondary); font-size: 14.5px; }
+
+  .stat-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 22px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    box-shadow: var(--shadow-md);
+  }
+  .stat-label {
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-tertiary); margin-bottom: 8px;
+  }
+  .stat-value { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+  .stat-sub { margin-top: 6px; font-size: 12.5px; color: var(--text-secondary); }
+
+  .lock-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--brand-soft);
+    border: none;
+  }
+  .lock-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--brand);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .lock-card .stat-value { color: var(--brand-dark); font-size: 16px; font-weight: 700; }
+  .lock-card .stat-sub { color: var(--brand-dark); opacity: 0.75; }
+
+  .main-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 28px 30px;
+    margin-bottom: 18px;
+  }
+  .main-card-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 22px;
+  }
+  .main-card-head h2 { font-size: 17px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .main-card-head p { margin: 0; font-size: 13.5px; color: var(--text-secondary); max-width: 480px; }
+  .count-chip {
+    background: var(--positive-bg);
+    color: var(--positive);
+    border: 1px solid var(--positive-border);
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .node-label { font-size: 13px; font-weight: 700; fill: white; text-anchor: middle; }
+  .node-sub { font-size: 10.5px; font-weight: 700; text-anchor: middle; }
+  .flow-caption { font-size: 11px; font-weight: 700; text-anchor: middle; }
+  .arrow-amt-bg { fill: var(--surface); }
+  .arrow-amt { font-size: 13px; font-weight: 700; text-anchor: middle; }
+
+  .diagram-wrap { display: flex; justify-content: center; margin: 4px 0 8px; }
+
+  .payment-list { display: flex; flex-direction: column; gap: 12px; margin-top: 26px; }
+  .payment-row {
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg);
+  }
+  .pair-avatars { display: flex; align-items: center; gap: 0; flex-shrink: 0; }
+  .pair-avatars .a1, .pair-avatars .a2 {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 14px;
+    border: 3px solid var(--bg);
+  }
+  .pair-arrow { color: var(--text-tertiary); font-size: 16px; margin: 0 2px; }
+  .payment-info { flex: 1; }
+  .payment-info .line { font-size: 14.5px; font-weight: 600; }
+  .payment-info .line b { font-weight: 700; }
+  .payment-info .sub { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+  .payment-amt { font-size: 18px; font-weight: 700; margin-right: 6px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    border-radius: var(--radius-sm); font-weight: 600; font-size: 13.5px;
+    padding: 10px 16px; border: 1px solid transparent; cursor: pointer;
+  }
+  .btn-primary { background: var(--brand); color: white; box-shadow: 0 1px 2px rgba(79,70,229,0.15), 0 6px 14px rgba(79,70,229,0.28); }
+  .btn-outline { background: var(--surface); color: var(--text); border-color: var(--border); }
+  .btn-done {
+    background: var(--positive-bg);
+    color: var(--positive);
+    border-color: var(--positive-border);
+  }
+
+  .footer-actions {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 6px;
+  }
+  .footer-actions .hint { font-size: 12.5px; color: var(--text-tertiary); }
+
+  .footer-note { text-align: center; color: var(--text-tertiary); font-size: 12.5px; margin-top: 36px; }
+</style>
+
+<div class="topnav">
+  <div class="brand">
+    <div class="brand-mark">&#127811;</div>
+    Maple House
+  </div>
+  <div class="navlinks">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="add-expense.html">Add Expense</a>
+    <a class="active" href="settle-up.html">Settle Up</a>
+  </div>
+  <div class="navright">
+    <div class="period-chip">July 2026</div>
+    <div class="avatar">A</div>
+  </div>
+</div>
+
+<div class="shell">
+
+  <div class="page-head">
+    <div class="crumb">Dashboard &nbsp;/&nbsp; Settle up</div>
+    <h1>Settle up &mdash; July 2026</h1>
+    <p>Debts simplified down to the fewest payments possible. Once every payment is marked paid, the period locks.</p>
+  </div>
+
+  <div class="stat-strip">
+    <div class="stat-card">
+      <div class="stat-label">Total to settle</div>
+      <div class="stat-value">$678.00</div>
+      <div class="stat-sub">Across 3 simplified payments</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Payments confirmed</div>
+      <div class="stat-value">0 of 3</div>
+      <div class="stat-sub">Waiting on Alex and Jordan</div>
+    </div>
+    <div class="stat-card lock-card">
+      <div class="lock-icon">&#128274;</div>
+      <div>
+        <div class="stat-value">Period will close once settled</div>
+        <div class="stat-sub">July locks and August begins fresh</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-card">
+    <div class="main-card-head">
+      <div>
+        <h2>Minimum payment plan</h2>
+        <p>Instead of 6+ pairwise debts across the household, everyone is settled in just 3 payments.</p>
+      </div>
+      <div class="count-chip">Simplified from 6 &rarr; 3 payments</div>
+    </div>
+
+    <div class="diagram-wrap">
+      <svg width="620" height="230" viewBox="0 0 620 230">
+        <defs>
+          <marker id="arrowhead2" markerWidth="9" markerHeight="9" refX="6.5" refY="3.5" orient="auto">
+            <path d="M0,0 L7,3.5 L0,7 Z" fill="var(--text-tertiary)" />
+          </marker>
+        </defs>
+
+        <!-- Alex -> Priya -->
+        <line x1="140" y1="60" x2="450" y2="55" stroke="var(--negative)" stroke-width="3" marker-end="url(#arrowhead2)" opacity="0.6"/>
+        <rect x="255" y="32" width="70" height="24" rx="12" class="arrow-amt-bg" stroke="var(--border)"/>
+        <text x="290" y="49" class="arrow-amt" fill="var(--negative)">$217</text>
+
+        <!-- Jordan -> Priya -->
+        <line x1="140" y1="175" x2="450" y2="70" stroke="var(--negative)" stroke-width="5" marker-end="url(#arrowhead2)" opacity="0.8"/>
+        <rect x="240" y="118" width="70" height="24" rx="12" class="arrow-amt-bg" stroke="var(--border)"/>
+        <text x="275" y="135" class="arrow-amt" fill="var(--negative)">$457</text>
+
+        <!-- Jordan -> Sam -->
+        <line x1="140" y1="175" x2="450" y2="185" stroke="var(--negative)" stroke-width="1.8" marker-end="url(#arrowhead2)" opacity="0.45"/>
+        <rect x="255" y="163" width="56" height="24" rx="12" class="arrow-amt-bg" stroke="var(--border)"/>
+        <text x="283" y="180" class="arrow-amt" fill="var(--negative)">$4</text>
+
+        <!-- Nodes: payers left -->
+        <g>
+          <circle cx="105" cy="60" r="32" fill="var(--alex)" opacity="0.15"/>
+          <circle cx="105" cy="60" r="26" fill="var(--alex)"/>
+          <text x="105" y="65" class="node-label">Alex</text>
+        </g>
+        <text x="105" y="104" class="flow-caption" fill="var(--negative)">pays $217</text>
+
+        <g>
+          <circle cx="105" cy="175" r="38" fill="var(--jordan)" opacity="0.15"/>
+          <circle cx="105" cy="175" r="31" fill="var(--jordan)"/>
+          <text x="105" y="181" class="node-label">Jordan</text>
+        </g>
+        <text x="105" y="221" class="flow-caption" fill="var(--negative)">pays $461 total</text>
+
+        <!-- Nodes: receivers right -->
+        <g>
+          <circle cx="485" cy="55" r="42" fill="var(--priya)" opacity="0.16"/>
+          <circle cx="485" cy="55" r="34" fill="var(--priya)"/>
+          <text x="485" y="52" class="node-label">Priya</text>
+          <text x="485" y="66" class="node-sub" fill="white" opacity="0.9">receives $674</text>
+        </g>
+
+        <g>
+          <circle cx="485" cy="185" r="24" fill="var(--sam)" opacity="0.15"/>
+          <circle cx="485" cy="185" r="19" fill="var(--sam)"/>
+          <text x="485" y="189" class="node-label" style="font-size:11px;">Sam</text>
+        </g>
+        <text x="485" y="222" class="flow-caption" fill="var(--positive)">receives $4</text>
+      </svg>
+    </div>
+
+    <div class="payment-list">
+      <div class="payment-row">
+        <div class="pair-avatars">
+          <div class="a1" style="background:var(--alex)">A</div>
+          <span class="pair-arrow">&rarr;</span>
+          <div class="a2" style="background:var(--priya)">P</div>
+        </div>
+        <div class="payment-info">
+          <div class="line"><b>Alex</b> pays <b>Priya</b></div>
+          <div class="sub">Covers Alex's share of rent, groceries and utilities</div>
+        </div>
+        <div class="payment-amt">$217.00</div>
+        <button class="btn btn-outline">Mark as paid</button>
+      </div>
+
+      <div class="payment-row">
+        <div class="pair-avatars">
+          <div class="a1" style="background:var(--jordan)">J</div>
+          <span class="pair-arrow">&rarr;</span>
+          <div class="a2" style="background:var(--priya)">P</div>
+        </div>
+        <div class="payment-info">
+          <div class="line"><b>Jordan</b> pays <b>Priya</b></div>
+          <div class="sub">Largest share of the remaining rent balance</div>
+        </div>
+        <div class="payment-amt">$457.00</div>
+        <button class="btn btn-outline">Mark as paid</button>
+      </div>
+
+      <div class="payment-row">
+        <div class="pair-avatars">
+          <div class="a1" style="background:var(--jordan)">J</div>
+          <span class="pair-arrow">&rarr;</span>
+          <div class="a2" style="background:var(--sam)">S</div>
+        </div>
+        <div class="payment-info">
+          <div class="line"><b>Jordan</b> pays <b>Sam</b></div>
+          <div class="sub">Small remainder from internet + takeout dinner</div>
+        </div>
+        <div class="payment-amt">$4.00</div>
+        <button class="btn btn-outline">Mark as paid</button>
+      </div>
+    </div>
+
+    <div class="footer-actions">
+      <div class="hint">All 4 members will be notified once a payment is marked paid.</div>
+      <button class="btn btn-primary">Remind everyone</button>
+    </div>
+  </div>
+
+  <div class="footer-note">Once all 3 payments are confirmed, July 2026 locks permanently and August starts at $0.</div>
+
+</div>

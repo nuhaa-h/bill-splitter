@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Maple House — Dashboard</title>
+<style>
+  :root{
+    --paper: #FBF6EE;
+    --paper-card: #FFFDF9;
+    --ink: #2B2620;
+    --ink-soft: #5B5347;
+    --muted: #8A8175;
+    --border: #E4D9C6;
+    --border-dash: #D3C4A9;
+    --accent-green: #3F7D58;
+    --accent-green-bg: #E7F1EA;
+    --accent-red: #B5482F;
+    --accent-red-bg: #F7E9E3;
+    --shadow-color: rgba(60, 45, 20, 0.10);
+
+    --alex: #E07856;
+    --priya: #4C7A6B;
+    --sam: #D9A441;
+    --jordan: #6B5B95;
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-7: 48px;
+
+    --radius-s: 8px;
+    --radius-m: 14px;
+    --radius-l: 20px;
+
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 15% 5%, rgba(224,120,86,0.06), transparent 40%),
+      radial-gradient(circle at 85% 15%, rgba(76,122,107,0.06), transparent 45%);
+  }
+
+  .shell {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: var(--space-5) var(--space-4) var(--space-7);
+    min-height: 100vh;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: var(--space-5);
+  }
+
+  .brand {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brand-mark {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .brand-mark .leaf {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--priya), #6a9b87);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(76,122,107,0.35);
+  }
+
+  .brand-mark h1 {
+    font-size: 19px;
+    margin: 0;
+    letter-spacing: -0.01em;
+    font-weight: 700;
+  }
+
+  .brand .period {
+    margin-top: var(--space-1);
+    margin-left: 34px;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .menu-dot {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-soft);
+    font-size: 18px;
+    letter-spacing: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ---------- Members strip ---------- */
+  .section-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-weight: 700;
+    margin: 0 0 var(--space-3) 2px;
+  }
+
+  .members {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+  }
+
+  .member-card {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+    padding: var(--space-3) var(--space-3);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    box-shadow: 0 2px 8px var(--shadow-color);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .member-card::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+  }
+
+  .member-card.pos::before { background: var(--accent-green); }
+  .member-card.neg::before { background: var(--accent-red); }
+
+  .chip {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+    flex-shrink: 0;
+    box-shadow: inset 0 -3px 6px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.12);
+  }
+  .chip.small { width: 26px; height: 26px; font-size: 11px; }
+  .chip.tiny { width: 20px; height: 20px; font-size: 9px; }
+
+  .chip.alex { background: var(--alex); }
+  .chip.priya { background: var(--priya); }
+  .chip.sam { background: var(--sam); }
+  .chip.jordan { background: var(--jordan); }
+
+  .member-info { display: flex; flex-direction: column; min-width: 0; }
+  .member-name { font-weight: 700; font-size: 14.5px; }
+  .member-balance {
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+  .member-balance.pos { color: var(--accent-green); }
+  .member-balance.neg { color: var(--accent-red); }
+  .member-balance .sub { color: var(--muted); font-weight: 500; font-size: 11px; font-family: var(--font-sans); }
+
+  /* ---------- Settle CTA ---------- */
+  .settle-cta {
+    background: linear-gradient(135deg, #2f5e46, var(--priya));
+    border-radius: var(--radius-l);
+    padding: var(--space-5);
+    color: #fff;
+    margin-bottom: var(--space-6);
+    box-shadow: 0 10px 24px -8px rgba(63,125,88,0.45);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .settle-cta::after {
+    content: "";
+    position: absolute;
+    right: -30px; top: -30px;
+    width: 140px; height: 140px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 50%;
+  }
+
+  .settle-cta .label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.85;
+    font-weight: 700;
+    margin-bottom: var(--space-2);
+  }
+
+  .settle-cta .headline {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: var(--space-1);
+    line-height: 1.35;
+  }
+
+  .settle-cta .sub {
+    font-size: 13px;
+    opacity: 0.85;
+    margin-bottom: var(--space-4);
+    line-height: 1.4;
+  }
+
+  .settle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: #fff;
+    color: #2f5e46;
+    font-weight: 700;
+    font-size: 14.5px;
+    padding: 11px 20px;
+    border-radius: 999px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.18);
+    border: none;
+    cursor: pointer;
+  }
+  .settle-btn .arrow { font-size: 15px; }
+
+  /* ---------- Expense feed ---------- */
+  .feed-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: var(--space-3);
+  }
+
+  .add-link {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--priya);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .add-link .plus {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--priya);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    line-height: 1;
+  }
+
+  .stub {
+    background: var(--paper-card);
+    border-radius: var(--radius-m);
+    padding: var(--space-4);
+    margin-bottom: var(--space-3);
+    box-shadow: 0 2px 8px var(--shadow-color);
+    position: relative;
+  }
+
+  /* torn edge illusion at bottom of stub */
+  .stub::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    height: 8px;
+    background: repeating-linear-gradient(
+      -45deg,
+      var(--paper) 0, var(--paper) 4px,
+      transparent 4px, transparent 8px
+    );
+    background-color: var(--paper-card);
+    -webkit-mask: linear-gradient(black, black);
+    display: none;
+  }
+
+  .stub-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .stub-title-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .stub-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-s);
+    background: var(--accent-green-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .stub-title { font-weight: 700; font-size: 14.5px; }
+  .stub-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .stub-amount {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 16px;
+    white-space: nowrap;
+  }
+
+  .stub-divider {
+    border: none;
+    border-top: 1px dashed var(--border-dash);
+    margin: var(--space-3) 0;
+  }
+
+  .stub-split {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .stub-chips { display: flex; }
+  .stub-chips .chip { margin-left: -6px; border: 2px solid var(--paper-card); }
+  .stub-chips .chip:first-child { margin-left: 0; }
+
+  .split-tag {
+    font-size: 11.5px;
+    color: var(--muted);
+    font-weight: 600;
+    background: var(--paper);
+    padding: 4px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+  }
+
+  footer.note {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: var(--space-6);
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <div class="leaf">🍁</div>
+        <h1>Maple House</h1>
+      </div>
+      <div class="period">July 2026 · Current period</div>
+    </div>
+    <div class="menu-dot">⋯</div>
+  </div>
+
+  <div class="section-label">Members &amp; balances</div>
+  <div class="members">
+    <div class="member-card pos">
+      <div class="chip priya">P</div>
+      <div class="member-info">
+        <div class="member-name">Priya</div>
+        <div class="member-balance pos">+$674.00 <span class="sub">owed</span></div>
+      </div>
+    </div>
+    <div class="member-card pos">
+      <div class="chip sam">S</div>
+      <div class="member-info">
+        <div class="member-name">Sam</div>
+        <div class="member-balance pos">+$4.00 <span class="sub">owed</span></div>
+      </div>
+    </div>
+    <div class="member-card neg">
+      <div class="chip alex">A</div>
+      <div class="member-info">
+        <div class="member-name">Alex</div>
+        <div class="member-balance neg">−$217.00 <span class="sub">owes</span></div>
+      </div>
+    </div>
+    <div class="member-card neg">
+      <div class="chip jordan">J</div>
+      <div class="member-info">
+        <div class="member-name">Jordan</div>
+        <div class="member-balance neg">−$461.00 <span class="sub">owes</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settle-cta">
+    <div class="label">End of period</div>
+    <div class="headline">Balances are ready to settle.</div>
+    <div class="sub">3 simplified payments will clear every balance to $0 for July.</div>
+    <button class="settle-btn">Settle Up <span class="arrow">→</span></button>
+  </div>
+
+  <div class="feed-header">
+    <div class="section-label" style="margin-bottom:0;">This period's expenses</div>
+    <a class="add-link" href="#"><span class="plus">+</span> Add expense</a>
+  </div>
+
+  <!-- Rent -->
+  <div class="stub">
+    <div class="stub-top">
+      <div class="stub-title-row">
+        <div class="stub-icon">🏠</div>
+        <div>
+          <div class="stub-title">Rent</div>
+          <div class="stub-meta">Paid by Priya · Jul 1</div>
+        </div>
+      </div>
+      <div class="stub-amount">$2,400.00</div>
+    </div>
+    <hr class="stub-divider">
+    <div class="stub-split">
+      <div class="stub-chips">
+        <div class="chip small alex">A</div>
+        <div class="chip small priya">P</div>
+        <div class="chip small sam">S</div>
+        <div class="chip small jordan">J</div>
+      </div>
+      <div class="split-tag">Split equally · $600 each</div>
+    </div>
+  </div>
+
+  <!-- Costco -->
+  <div class="stub">
+    <div class="stub-top">
+      <div class="stub-title-row">
+        <div class="stub-icon">🛒</div>
+        <div>
+          <div class="stub-title">Costco run</div>
+          <div class="stub-meta">Paid by Alex · Jul 4 · 4 items</div>
+        </div>
+      </div>
+      <div class="stub-amount">$186.42</div>
+    </div>
+    <hr class="stub-divider">
+    <div class="stub-split">
+      <div class="stub-chips">
+        <div class="chip small alex">A</div>
+        <div class="chip small priya">P</div>
+        <div class="chip small sam">S</div>
+        <div class="chip small jordan">J</div>
+      </div>
+      <div class="split-tag">Itemized</div>
+    </div>
+  </div>
+
+  <!-- Internet -->
+  <div class="stub">
+    <div class="stub-top">
+      <div class="stub-title-row">
+        <div class="stub-icon">📶</div>
+        <div>
+          <div class="stub-title">Internet bill</div>
+          <div class="stub-meta">Paid by Sam · Jul 8</div>
+        </div>
+      </div>
+      <div class="stub-amount">$79.99</div>
+    </div>
+    <hr class="stub-divider">
+    <div class="stub-split">
+      <div class="stub-chips">
+        <div class="chip small alex">A</div>
+        <div class="chip small priya">P</div>
+        <div class="chip small sam">S</div>
+        <div class="chip small jordan">J</div>
+      </div>
+      <div class="split-tag">Split equally · $20.00 each</div>
+    </div>
+  </div>
+
+  <!-- Takeout -->
+  <div class="stub">
+    <div class="stub-top">
+      <div class="stub-title-row">
+        <div class="stub-icon">🥡</div>
+        <div>
+          <div class="stub-title">Takeout dinner</div>
+          <div class="stub-meta">Paid by Jordan · Jul 10 · 3 items</div>
+        </div>
+      </div>
+      <div class="stub-amount">$54.30</div>
+    </div>
+    <hr class="stub-divider">
+    <div class="stub-split">
+      <div class="stub-chips">
+        <div class="chip small alex">A</div>
+        <div class="chip small priya">P</div>
+        <div class="chip small sam">S</div>
+      </div>
+      <div class="split-tag">Itemized + tip</div>
+    </div>
+  </div>
+
+  <footer class="note">Balances update automatically as expenses are added.<br>Settle up to lock the July period.</footer>
+
+</div>
+</body>
+</html>
