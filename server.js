@@ -103,6 +103,11 @@ const server = http.createServer(async (req, res) => {
   const { method, url } = req;
   const parts = url.split("?")[0].split("/").filter(Boolean);
 
+  if (url === "/favicon.ico") {
+    res.writeHead(204);
+    return res.end();
+  }
+
   try {
     // POST /api/households  { name, creatorName }
     if (url === "/api/households" && method === "POST") {
